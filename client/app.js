@@ -1,4 +1,3 @@
-
 function Header(){
     return(
         <div>
@@ -12,11 +11,11 @@ function Main(){
 
     return(
         <div>
-
+            <img src="" alt="" />
         </div>
     )
     
-}
+} 
 
 function App(){
     return(
