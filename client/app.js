@@ -10,22 +10,21 @@ function Header(){
 };
 
 
-/* const katter = fetch("fs").JSON.parse("/katter.json"); */
 
-/* function Main(){
+
+function Katter(){
     return(
         <div>
-            {katter}
+            
         </div>
     );
     
 };
- */
+
 function App(){
     return(
         <div>
             <Header />
-            <Main />
         </div>
     );
 };
