@@ -9,12 +9,20 @@ const fs = require("fs").promises;
 
 app.use(express.static("client"));
 app.use(express.json());
+app.use(express.urlencoded({extended:true}))
 
-/* app.get("/", (req, res) =>{
-    res.sendFile(__dirname + "/client/index")
-}) */
+app.get("/", (req, res) =>{
+    res.sendFile(__dirname + "/index.html")
+})
 
 app.get("/api/katter", async (req, res) => {
     const katter = await fs.readFile("katter.json");
-    res.json(katter);
+    res.json(JSON.parse(katter));
+})
+
+app.post("/api/katter", async (req, res) => {
+    const katter = await fs.readFile("katter.json");
+    const katterna = JSON.parse(katter)
+    katterna.push(req.body)
+    
 })

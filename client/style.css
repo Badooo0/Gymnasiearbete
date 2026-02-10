@@ -1,0 +1,11 @@
+.katter{
+    border: 1px solid black;
+}
+
+.content{
+    display: none; 
+}
+
+:target{
+    display:block
+}
