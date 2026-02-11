@@ -12,14 +12,18 @@ function Header(){
 
 function Upload(){
 
-    async function getkatter(){
-        const res = await fetch("/api/katter")
+    async function skickaIn(){
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            
+        })
         const katter = await res.json()
+
     }
 
     return(
         <div id="upload" className="content">
-            <form action="/api/katter" method="post">
+            <form onSubmit={skickaIn} >
                 <input type="text" name="name" id="" />
                 <input type="submit" value="Submit" />
             </form>
