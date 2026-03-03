@@ -1,4 +1,12 @@
 [
-    {"id": "id_1", "name": "Kroot", "race": "norsk diddler"},
-    {"id": "id_2", "name": "Bobyl", "race": "Riggydoll"}
+  {
+    "id": "id_1",
+    "name": "krood",
+    "race": "american_curl"
+  },
+  {
+    "id": "id_2",
+    "name": "kroot",
+    "race": "Norwegian_Forest"
+  }
 ]

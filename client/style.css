@@ -9,3 +9,7 @@
 :target{
     display:block
 }
+
+select option[disabled] {
+    color: #888;
+}
