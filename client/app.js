@@ -50,7 +50,7 @@ function Upload({setKatter, raser}){
             <form onSubmit={skickaIn}>
                 <input type="text" name="name" placeholder="Name" required/>
                 <select name="race" defaultValue="" required>
-                    <option value="" disabled>Choose a race...</option>
+                    <option value="" disabled>Välj en ras...</option>
                     {raser.map(r=> (
                         <option key={r} value={r}>
                             {r.replace(/_/g, " ").replace(/\b\w/g, bokstav => bokstav.toUpperCase())}  
@@ -139,7 +139,7 @@ function Katt({katt, setKatter, raser}){
                     <form onSubmit={updateKatt}>
                         <input type="text" name="name" placeholder="Name" defaultValue={katt.name} required/>
                         <select name="race" defaultValue={katt.race} required>
-                            <option value="" disabled>Choose a race...</option>
+                            <option value="" disabled>Välj en ras...</option>
                             {raser.map(r=> (
                                 <option key={r} value={r}>
                                     {r.replace(/_/g, " ").replace(/\b\w/g, bokstav => bokstav.toUpperCase())}  
@@ -155,9 +155,48 @@ function Katt({katt, setKatter, raser}){
 
 }
 
+function Login({loggedIn, setLoggedIN}){
+
+    async function login(event){
+        event.preventDefault();
+
+        const konto = {
+            email: event.target.email.value,
+            password: event.target.password.value
+        }
+
+
+        const res = await fetch("/api/login", {
+            method: "POST",
+            headers: {"Contet-Type": "application/json"},
+            body: JSON.stringify(konto)
+        })
+
+        
+
+        setLoggedIN(true)
+    }
+
+
+
+
+    return(
+        loggedIn ?
+        <div id="login" className="content">
+            <form action="/api/login" method="post">
+                <input type="text" name="email" placeholder="Email" required/>
+                <input type="text" name="password" placeholder="Password" required/>
+                <input type="submit" value="Login" />
+            </form>
+        </div>
+        : "lil broooo"
+    )
+}
+
 function App(){
 
     const [katter, setKatter] = React.useState([])
+    const [loggedIn, setLoggedIN] = React.useState(false)
 
     const raser = [
     "abyssinian", 
@@ -217,6 +256,7 @@ function App(){
             <Header />
             <Katter setKatter={setKatter} katter={katter} raser={raser}/>
             <Upload setKatter={setKatter} raser={raser}/>
+            <Login loggedIn={loggedIn} setLoggedIN={setLoggedIN}/>
         </div>
     );
 };
