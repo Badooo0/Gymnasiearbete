@@ -168,24 +168,26 @@ function Login({loggedIn, setLoggedIN}){
 
         const res = await fetch("/api/login", {
             method: "POST",
-            headers: {"Contet-Type": "application/json"},
+            headers: {"Content-Type": "application/json"},
+            credentials: "include", //skickas cookies
             body: JSON.stringify(konto)
         })
 
+        res.ok 
+            ? setLoggedIN(true)
+            : console.log("login failed") 
         
-
-        setLoggedIN(true)
     }
 
 
 
 
     return(
-        loggedIn ?
+        !loggedIn ?
         <div id="login" className="content">
-            <form action="/api/login" method="post">
+            <form onSubmit={login} method="post">
                 <input type="text" name="email" placeholder="Email" required/>
-                <input type="text" name="password" placeholder="Password" required/>
+                <input type="password" name="password" placeholder="Password" required/>
                 <input type="submit" value="Login" />
             </form>
         </div>

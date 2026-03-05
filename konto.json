@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "email": "supercool@gmail.com",
+        "password": "cool",
+        "role": "admin"
+    }
+]

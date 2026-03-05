@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3400;
+const session = require("express-session");
+const { read, readFile } = require("fs");
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
@@ -9,6 +11,14 @@ const fs = require("fs/promises")
 
 app.use(express.static("client"));
 app.use(express.json());
+
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}))
+
 
 app.get("/", (req, res) =>{
     res.sendFile(__dirname + "/index.html")
@@ -65,3 +75,28 @@ app.post("/api/katter", async (req, res) => {
    
 })
 
+app.post("/api/login", async (req, res) => {
+
+    const user = req.body
+    const konton = JSON.parse(await fs.readFile("konto.json"));
+
+    const konto = konton.find(k => k.email == user.email && k.password == user.password);
+
+    if(!konto){
+        return console.log("fel lösenord eller email")
+    }
+
+    req.session.user = {
+        email: konto.email,
+        role: konto.role
+    }
+
+    res.json({
+        user: req.session.user
+    })
+    console.log(user, konton, req.session)
+})
+
+app.post("/api/logout", (req, res) => {
+    req.session.destroy()
+})
