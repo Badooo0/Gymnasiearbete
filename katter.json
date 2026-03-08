@@ -1,7 +1,7 @@
 [
   {
     "id": "id_1",
-    "name": "krood",
+    "name": "kroop",
     "race": "american_curl"
   },
   {
@@ -13,5 +13,10 @@
     "id": "id_3",
     "name": "baooo",
     "race": "Egyptian_Mau"
+  },
+  {
+    "id": "id_4",
+    "name": "hio",
+    "race": "Siberian"
   }
 ]

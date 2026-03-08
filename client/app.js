@@ -1,14 +1,25 @@
-function Header(){
+function Header({loggedIn, logout}){
     return(
-        <div>
+        <nav>
             <h2>Cat website</h2>
             <a href="#">Home</a>
             <a href="#katt">Katter</a>
             <a href="#upload">Upload</a>
-            <a href="#login">Login</a>
-            <a href="#register">Register</a>
-            <a href="#logout">Logout</a>
-        </div>
+            
+            {!loggedIn
+                ? (
+                    <div>
+                        <a href="#login">Login</a>
+                        <a href="#register">Register</a>
+                    </div>
+                ) : (   
+                    <div>
+                        <a href="#logout" onClick={logout}>Logout</a>
+                    </div>
+                )
+            }
+                
+        </nav>
     );
 };
 
@@ -173,7 +184,7 @@ function Login({loggedIn, setLoggedIN}){
             body: JSON.stringify(konto)
         })
 
-        res.ok 
+        res.ok
             ? setLoggedIN(true)
             : console.log("login failed") 
         
@@ -194,6 +205,7 @@ function Login({loggedIn, setLoggedIN}){
         : "lil broooo"
     )
 }
+
 
 function App(){
 
@@ -253,9 +265,32 @@ function App(){
     "Turkish_Van"
     ]
 
+    React.useEffect(() => {
+        checkLogin();
+    }, []);
+
+    async function checkLogin(){
+        const res = await fetch("/api/status", {
+            credentials: "include"
+        })
+
+        res.ok ? setLoggedIN(true) : console.log("fel")
+    }
+
+    async function logout(){
+        await fetch("/api/logout", {
+            method: "POST",
+            credentials: "include"
+        })
+
+        setLoggedIN(false)
+        console.log("logged out")
+    }
+
+
     return(
         <div>
-            <Header />
+            <Header loggedIn={loggedIn} logout={logout}/>
             <Katter setKatter={setKatter} katter={katter} raser={raser}/>
             <Upload setKatter={setKatter} raser={raser}/>
             <Login loggedIn={loggedIn} setLoggedIN={setLoggedIN}/>

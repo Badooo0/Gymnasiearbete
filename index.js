@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3400;
 const session = require("express-session");
-const { read, readFile } = require("fs");
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
@@ -15,7 +14,7 @@ app.use(express.json());
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: { secure: false }
 }))
 
@@ -83,7 +82,7 @@ app.post("/api/login", async (req, res) => {
     const konto = konton.find(k => k.email == user.email && k.password == user.password);
 
     if(!konto){
-        return console.log("fel lösenord eller email")
+        return res.status(401)
     }
 
     req.session.user = {
@@ -92,6 +91,7 @@ app.post("/api/login", async (req, res) => {
     }
 
     res.json({
+        loggedIn: true,
         user: req.session.user
     })
     console.log(user, konton, req.session)
@@ -99,4 +99,19 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/logout", (req, res) => {
     req.session.destroy()
+
+    res.json({loggedIn: false})
+})
+
+app.get("/api/status", (req, res) => {
+    if(!req.session.user) {return res.status(401).json({loggedIn: false})}
+         
+    res.json({
+        loggedIn: true,
+        user: req.session.user
+    })
+})
+
+app.get("/test", (req, res) => {
+    res.json(req.session)
 })
