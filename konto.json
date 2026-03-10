@@ -1,7 +1,17 @@
 [
-    {
-        "email": "supercool@gmail.com",
-        "password": "cool",
-        "role": "admin"
-    }
+  {
+    "email": "supercool@gmail.com",
+    "password": "cool",
+    "role": "admin"
+  },
+  {
+    "email": "dingus@gmail.com",
+    "password": "dingdong",
+    "role": "normal_bum"
+  },
+  {
+    "email": "boi",
+    "password": "dio",
+    "role": "normal_bum"
+  }
 ]

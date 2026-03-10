@@ -2,14 +2,10 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3400;
 const session = require("express-session");
+const {getData, saveData, guest} = require("./indexFunctions")
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
-
-const fs = require("fs/promises")
-
-app.use(express.static("client"));
-app.use(express.json());
 
 app.use(session({
   secret: 'keyboard cat',
@@ -18,24 +14,29 @@ app.use(session({
   cookie: { secure: false }
 }))
 
+app.use(guest)
+
+app.use(express.static("client"));
+app.use(express.json());
+
 
 app.get("/", (req, res) =>{
     res.sendFile(__dirname + "/index.html")
 })
 
 app.get("/api/katter", async (req, res) => {
-    const katter = await fs.readFile("katter.json");
-    res.json(JSON.parse(katter));
+    const katter = await getData("katter.json");
+    res.json(katter);
 })
 
 app.patch("/api/katter/:id", async (req, res) => {
     const id = req.params.id;
     const updateradKatt = req.body;
 
-    const katter = JSON.parse(await fs.readFile("katter.json"));
+    const katter = await getData("katter.json");
     const updatedKatter = katter.map(k => k.id == id ? {...k, ...updateradKatt}: k) /* får egenskaper från k men skriver över med uppdateradKatts egenskaper */
 
-    await fs.writeFile("katter.json", JSON.stringify(updatedKatter, null, 2));
+    await saveData("katter.json", updatedKatter);
 
     const katt = updatedKatter.find(k => k.id == id);
     res.json(katt)
@@ -43,10 +44,10 @@ app.patch("/api/katter/:id", async (req, res) => {
 
 app.delete("/api/katter/:id", async (req, res) => {
     const id = req.params.id;
-    const katter = JSON.parse(await fs.readFile("katter.json"));
+    const katter = await getData("katter.json");
     const filterKatter = katter.filter(k=> k.id != id);
 
-    await fs.writeFile("katter.json", JSON.stringify(filterKatter, null, 2));
+    await saveData("katter.json", filterKatter);
     res.json(filterKatter);
 })
 
@@ -55,8 +56,7 @@ app.post("/api/katter", async (req, res) => {
 
         console.log("BODY RECEIVED:", req.body);
 
-        const data = await fs.readFile("katter.json");
-        const katter = JSON.parse(data);
+        const katter = await getData("katter.json");
 
         const katt = {
             id: "id_" + (katter.length + 1),
@@ -65,7 +65,7 @@ app.post("/api/katter", async (req, res) => {
         };
     
         katter.push(katt)
-        await fs.writeFile("katter.json", JSON.stringify(katter, null, 2))
+        await saveData("katter.json", katter)
         res.json(katt)
     } catch (error) {
         console.error("Error adding cat:", error);
@@ -77,7 +77,7 @@ app.post("/api/katter", async (req, res) => {
 app.post("/api/login", async (req, res) => {
 
     const user = req.body
-    const konton = JSON.parse(await fs.readFile("konto.json"));
+    const konton = await getData("konto.json");
 
     const konto = konton.find(k => k.email == user.email && k.password == user.password);
 
@@ -95,6 +95,25 @@ app.post("/api/login", async (req, res) => {
         user: req.session.user
     })
     console.log(user, konton, req.session)
+})
+
+app.post("/api/register", async (req, res) => {
+
+    const konton = await getData("konto.json");
+
+    const konto = {
+        email: req.body.email,
+        password: req.body.password,
+        role: "normal_bum"
+    }
+    
+    const kontodup = konton.find(k=> k.email == konto.email)
+
+    if(kontodup){return console.log("konto finns redan")}
+    res.json(konto)
+    konton.push(konto)
+    await saveData("konto.json", konton)
+    console.log(konto)
 })
 
 app.post("/api/logout", (req, res) => {

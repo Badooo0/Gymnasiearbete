@@ -176,7 +176,6 @@ function Login({loggedIn, setLoggedIN}){
             password: event.target.password.value
         }
 
-
         const res = await fetch("/api/login", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -189,9 +188,6 @@ function Login({loggedIn, setLoggedIN}){
             : console.log("login failed") 
         
     }
-
-
-
 
     return(
         !loggedIn ?
@@ -206,6 +202,34 @@ function Login({loggedIn, setLoggedIN}){
     )
 }
 
+
+function Register(){
+    async function register(event){
+        event.preventDefault(); 
+
+        const konto = {
+            email: event.target.email.value,
+            password: event.target.password.value
+        }
+
+        const res = await fetch("/api/register", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(konto) 
+        })
+
+    }
+
+    return(
+        <div id="register" className="content">
+            <form onSubmit={register} method="post">
+                <input type="text" name="email" placeholder="Email" required/>
+                <input type="password" name="password" placeholder="Password" required/>
+                <input type="submit" value="Register" />
+            </form>
+        </div>
+    )
+}
 
 function App(){
 
@@ -294,6 +318,7 @@ function App(){
             <Katter setKatter={setKatter} katter={katter} raser={raser}/>
             <Upload setKatter={setKatter} raser={raser}/>
             <Login loggedIn={loggedIn} setLoggedIN={setLoggedIN}/>
+            <Register />
         </div>
     );
 };
