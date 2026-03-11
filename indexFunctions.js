@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require("fs/promises");
 
 async function getData(fileDir){
     const data = JSON.parse(await fs.readFile(fileDir));
@@ -14,4 +14,19 @@ function guest(req, res, next){
     next()
 }
 
-module.exports = {getData, saveData, guest}
+async function dingus(req, res, next){
+
+    const konton = await getData("konto.json");
+
+    const auth = konton.find(k=> k.email == req.session.user.email)
+
+    if(!auth) {
+        console.log("bingus")
+        return next()
+    }
+    console.log(auth)
+
+    next()
+}
+
+module.exports = {getData, saveData, guest, dingus}

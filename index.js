@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3400;
 const session = require("express-session");
-const {getData, saveData, guest} = require("./indexFunctions")
+const {getData, saveData, guest, dingus} = require("./indexFunctions")
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
@@ -14,11 +14,11 @@ app.use(session({
   cookie: { secure: false }
 }))
 
-app.use(guest)
-
 app.use(express.static("client"));
 app.use(express.json());
 
+app.use(guest)
+app.use(dingus)
 
 app.get("/", (req, res) =>{
     res.sendFile(__dirname + "/index.html")
