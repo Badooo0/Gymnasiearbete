@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3400;
 const session = require("express-session");
-const {getData, saveData, guest, dingus} = require("./indexFunctions")
+const {getData, saveData, guest, dingus, dingdeldi} = require("./indexFunctions")
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
@@ -18,7 +18,6 @@ app.use(express.static("client"));
 app.use(express.json());
 
 app.use(guest)
-app.use(dingus)
 
 app.get("/", (req, res) =>{
     res.sendFile(__dirname + "/index.html")
@@ -42,7 +41,7 @@ app.patch("/api/katter/:id", async (req, res) => {
     res.json(katt)
 })
 
-app.delete("/api/katter/:id", async (req, res) => {
+app.delete("/api/katter/:id", dingdeldi,  async (req, res) => {
     const id = req.params.id;
     const katter = await getData("katter.json");
     const filterKatter = katter.filter(k=> k.id != id);

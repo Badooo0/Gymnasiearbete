@@ -18,7 +18,7 @@ async function dingus(req, res, next){
 
     const konton = await getData("konto.json");
 
-    const auth = konton.find(k=> k.email == req.session.user.email)
+    const auth = konton.find(k=> k.email == req.session.email)
 
     if(!auth) {
         console.log("bingus")
@@ -29,4 +29,15 @@ async function dingus(req, res, next){
     next()
 }
 
-module.exports = {getData, saveData, guest, dingus}
+async function dingdeldi(req, res, next){
+
+    dingus();
+
+    if(req.session.role == admin) return(next())
+
+
+    next();
+
+}
+
+module.exports = {getData, saveData, guest, dingus, dingdeldi}

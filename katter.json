@@ -1,22 +1,4 @@
 [
-  {
-    "id": "id_1",
-    "name": "kroop",
-    "race": "american_curl"
-  },
-  {
-    "id": "id_2",
-    "name": "kroot",
-    "race": "Norwegian_Forest"
-  },
-  {
-    "id": "id_3",
-    "name": "baooo",
-    "race": "Egyptian_Mau"
-  },
-  {
-    "id": "id_4",
-    "name": "hio",
-    "race": "Siberian"
-  }
+    {"id": "id_1", "name": "Kroot", "race": "norsk diddler"},
+    {"id": "id_2", "name": "Bobyl", "race": "Riggydoll"}
 ]
