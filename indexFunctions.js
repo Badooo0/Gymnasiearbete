@@ -10,31 +10,29 @@ async function saveData(fileDir, data){
 }
 
 function guest(req, res, next){
-    if(!req.session.role) req.session.role = "guest";
+    if(!req.session.user) req.session.user = {role: "guest"};
     next()
 }
 
-async function dingus(req, res, next){
+function dingus(req, res, next){
 
-    const konton = await getData("konto.json");
+    const auth = req.session.user
 
-    const auth = konton.find(k=> k.email == req.session.email)
-
-    if(!auth) {
-        console.log("bingus")
+    if(auth.role == "guest"){
+        res.redirect("/#login")
         return next()
     }
-    console.log(auth)
-
+    console.log(auth.role)
     next()
 }
 
 async function dingdeldi(req, res, next){
-
+    
     dingus();
 
-    if(req.session.role == admin) return(next())
-
+    const konton = await getData("konto.json")
+    
+    if(req.session.user == "admin")
 
     next();
 

@@ -23,12 +23,12 @@ app.get("/", (req, res) =>{
     res.sendFile(__dirname + "/index.html")
 })
 
-app.get("/api/katter", async (req, res) => {
+app.get("/api/katter", dingus, async (req, res) => {
     const katter = await getData("katter.json");
     res.json(katter);
 })
 
-app.patch("/api/katter/:id", async (req, res) => {
+app.patch("/api/katter/:id", dingus, async (req, res) => {
     const id = req.params.id;
     const updateradKatt = req.body;
 
@@ -41,7 +41,7 @@ app.patch("/api/katter/:id", async (req, res) => {
     res.json(katt)
 })
 
-app.delete("/api/katter/:id", dingdeldi,  async (req, res) => {
+app.delete("/api/katter/:id", dingus,  async (req, res) => {
     const id = req.params.id;
     const katter = await getData("katter.json");
     const filterKatter = katter.filter(k=> k.id != id);
@@ -122,7 +122,7 @@ app.post("/api/logout", (req, res) => {
 })
 
 app.get("/api/status", (req, res) => {
-    if(!req.session.user) {return res.status(401).json({loggedIn: false})}
+    if(req.session.user.role == "guest") {return res.status(401).json({loggedIn: false})}
          
     res.json({
         loggedIn: true,
