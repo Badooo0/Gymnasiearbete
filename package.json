@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/Badooo0/Gymnasiearbete#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
-    "express-session": "^1.19.0"
+    "express-session": "^1.19.0",
+    "js": "^0.1.0"
   }
 }

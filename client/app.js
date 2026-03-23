@@ -107,7 +107,7 @@ function Katt({katt, setKatter, raser}){
             method:"DELETE"
         });
 
-        res.status.ok ? (
+        res.ok ? (
             setKatter(prev=> prev.filter(k=> katt.id != k.id))
         ) : (
             console.log("there was a problem deleting")
@@ -198,7 +198,7 @@ function Login({loggedIn, setLoggedIN}){
                 <input type="submit" value="Login" />
             </form>
         </div>
-        : "lil broooo"
+        : <p>you are logged in</p>
     )
 }
 

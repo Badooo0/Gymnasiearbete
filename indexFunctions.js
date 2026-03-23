@@ -19,19 +19,21 @@ function dingus(req, res, next){
     const auth = req.session.user
 
     if(auth.role == "guest"){
-        res.redirect("/#login")
-        return next()
+        console.log("user inte tillåten")
+        return res.status(401).json({error: "inte en dingus burrr"})
+        
     }
-    console.log(auth.role)
+    console.log("user tillåten " + auth.role)
+    
     next()
 }
 
 async function dingdeldi(req, res, next){
     
-    dingus();
+    const konton = await getData("konto.json");
+    const objectID = req.params.id;
 
-    const konton = await getData("konto.json")
-    
+
     if(req.session.user == "admin")
 
     next();
