@@ -37,7 +37,8 @@ function Upload({setKatter, raser}){
         const res = await fetch("/api/katter", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(katt)
+            body: JSON.stringify(katt),
+            credentials: "include"
         })
         
         const nyKatt = await res.json()
@@ -83,7 +84,9 @@ function Katter({setKatter, katter, raser}){
     }, [])
 
     async function getKatter(){
-        const res = await fetch("/api/katter")
+        const res = await fetch("/api/katter", {
+            credentials: "include"
+        })
         const katter = await res.json()
         setKatter(katter)
         console.log(katter);
@@ -104,7 +107,8 @@ function Katt({katt, setKatter, raser}){
 
     async function delKatt(){
         const res = await fetch("/api/katter/" + katt.id, {
-            method:"DELETE"
+            method:"DELETE",
+            credentials: "include"
         });
 
         res.ok ? (
@@ -127,7 +131,8 @@ function Katt({katt, setKatter, raser}){
         const res = await fetch("/api/katter/" + katt.id, {
             method: "PATCH",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(updatedKatt)
+            body: JSON.stringify(updatedKatt),
+            credentials: "include"
         })
 
         const nyaKatter = await res.json();
@@ -215,7 +220,8 @@ function Register(){
         const res = await fetch("/api/register", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(konto) 
+            body: JSON.stringify(konto), 
+            credentials: "include"
         })
 
     }

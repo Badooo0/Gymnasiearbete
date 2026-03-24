@@ -9,27 +9,27 @@ app.listen(PORT, () => {
 });
 
 app.use(session({
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false }
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }
 }))
+
+app.use(guest)
 
 app.use(express.static("client"));
 app.use(express.json());
-
-app.use(guest)
 
 app.get("/", (req, res) =>{
     res.sendFile(__dirname + "/index.html")
 })
 
-app.get("/api/katter", dingus, async (req, res) => {
+app.get("/api/katter", async (req, res) => {
     const katter = await getData("katter.json");
     res.json(katter);
 })
 
-app.patch("/api/katter/:id", dingus, async (req, res) => {
+app.patch("/api/katter/:id", dingus, dingdeldi, async (req, res) => {
     const id = req.params.id;
     const updateradKatt = req.body;
 
@@ -42,7 +42,7 @@ app.patch("/api/katter/:id", dingus, async (req, res) => {
     res.json(katt)
 })
 
-app.delete("/api/katter/:id", dingus,  async (req, res) => {
+app.delete("/api/katter/:id", dingus, dingdeldi,  async (req, res) => {
     const id = req.params.id;
     const katter = await getData("katter.json");
     const filterKatter = katter.filter(k=> k.id != id);
@@ -61,11 +61,13 @@ app.post("/api/katter", dingus, async (req, res) => {
         const katt = {
             id: "id_" + Date.now(),
             name: req.body.name,
-            race: req.body.race
+            race: req.body.race,
+            creator: req.session.user.email
         };
     
         katter.push(katt)
         await saveData("katter.json", katter)
+
         res.json(katt)
     } catch (error) {
         console.error("Error adding cat:", error);
@@ -85,6 +87,11 @@ app.post("/api/login", async (req, res) => {
         return res.status(401).json({error:"hittade inte kontot"})
     }
 
+    const match = await bcrypt.compare(user.password, konto.password)
+
+    if(!match){
+        return res.status(401).json({error:"fel lösenord"})
+    }
     req.session.user = {
         email: konto.email,
         role: konto.role
@@ -102,17 +109,19 @@ app.post("/api/register", async (req, res) => {
 
     const konto = {
         email: req.body.email,
-        password: await bcrypt.hash(12, req.body.password),
+        password: await bcrypt.hash(req.body.password, 12),
         role: "normal_bum"
     }
     
     const kontodup = konton.find(k=> k.email == konto.email)
 
     if(kontodup){return res.status(400).json({error: "kontot finns redan"})}
-    res.json(konto)
+
     konton.push(konto)
     await saveData("konto.json", konton)
     console.log(konto)
+
+    res.json(konto)
 })
 
 app.post("/api/logout", (req, res) => {
@@ -122,7 +131,7 @@ app.post("/api/logout", (req, res) => {
 })
 
 app.get("/api/status", (req, res) => {
-    if(req.session.user.role == "guest") {
+    if(!req.session.user || req.session.user.role == "guest") {
         console.log(req.session.user.role)
         return res.status(401).json({loggedIn: false})
     }

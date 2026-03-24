@@ -18,7 +18,7 @@ function dingus(req, res, next){
 
     const auth = req.session.user
 
-    if(auth.role == "guest"){
+    if(!auth || auth.role == "guest"){
         console.log("user inte tillåten")
         return res.status(401).json({error: "inte en dingus burrr"})
         
@@ -30,11 +30,23 @@ function dingus(req, res, next){
 
 async function dingdeldi(req, res, next){
     
-    const konton = await getData("konto.json");
+    const katter = await getData("katter.json");
     const objectID = req.params.id;
 
+    const katt = katter.find(k => objectID == k.id)
 
-    if(req.session.user == "admin")
+    if(req.session.user.role == "admin"){
+
+        return next()
+    }
+
+    if(!katt){
+        return res.status(404).json({error: "katt finns inte"})
+    }
+
+    if(katt.creator !== req.session.user.email){
+        return res.status(403).json({error: "inte ägaren"})
+    }
 
     next();
 
