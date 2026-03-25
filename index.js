@@ -120,9 +120,10 @@ app.post("/api/register", async (req, res) => {
     
     const kontodup = konton.find(k=> k.email == konto.email)
 
-    const kontoUser = konton.find(p=> p.username == konto.password)
+    const kontoUser = konton.find(p=> p.username == konto.username)
 
-    if(kontodup){return res.status(400).json({error: "kontot finns redan"})}
+    if(kontodup){return res.status(400).json({error: "email finns redan"})}
+    if(kontoUser){return res.status(400).json({error: "username finns redan"})}
 
     konton.push(konto)
     await saveData("konton.json", konton)

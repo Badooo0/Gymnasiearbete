@@ -44,7 +44,7 @@ async function dingdeldi(req, res, next){
         return res.status(404).json({error: "katt finns inte"})
     }
 
-    if(katt.creator !== req.session.user.email){
+    if(katt.creatorE !== req.session.user.email){
         return res.status(403).json({error: "inte ägaren"})
     }
 
