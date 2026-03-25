@@ -57,12 +57,16 @@ app.post("/api/katter", dingus, async (req, res) => {
         console.log("BODY RECEIVED:", req.body);
 
         const katter = await getData("katter.json");
+        const konton = await getData("konton.json");
+
+        const konto = konton.find(k=>req.session.user.email == k.email)
 
         const katt = {
             id: "id_" + Date.now(),
             name: req.body.name,
             race: req.body.race,
-            creator: req.session.user.email
+            creator: konto.username,
+            creatorE: konto.email
         };
     
         katter.push(katt)
@@ -79,7 +83,7 @@ app.post("/api/katter", dingus, async (req, res) => {
 app.post("/api/login", async (req, res) => {
 
     const user = req.body
-    const konton = await getData("konto.json");
+    const konton = await getData("konton.json");
 
     const konto = konton.find(k => k.email == user.email);
 
@@ -105,9 +109,10 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/register", async (req, res) => {
 
-    const konton = await getData("konto.json");
+    const konton = await getData("konton.json");
 
     const konto = {
+        username: req.body.username,
         email: req.body.email,
         password: await bcrypt.hash(req.body.password, 12),
         role: "normal_bum"
@@ -115,10 +120,12 @@ app.post("/api/register", async (req, res) => {
     
     const kontodup = konton.find(k=> k.email == konto.email)
 
+    const kontoUser = konton.find(p=> p.username == konto.password)
+
     if(kontodup){return res.status(400).json({error: "kontot finns redan"})}
 
     konton.push(konto)
-    await saveData("konto.json", konton)
+    await saveData("konton.json", konton)
     console.log(konto)
 
     res.json(konto)

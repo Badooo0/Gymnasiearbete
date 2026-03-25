@@ -5,6 +5,8 @@ function Header({loggedIn, logout}){
             <a href="#">Home</a>
             <a href="#katt">Katter</a>
             <a href="#upload">Upload</a>
+
+            <button></button>
             
             {!loggedIn
                 ? (
@@ -23,6 +25,13 @@ function Header({loggedIn, logout}){
     );
 };
 
+function Profile(){
+
+
+    return(
+        <div id="profil" className="content">hej</div>
+    )
+}
 
 function Upload({setKatter, raser}){
 
@@ -77,7 +86,7 @@ function Upload({setKatter, raser}){
 
 }
 
-function Katter({setKatter, katter, raser}){
+function Katter({setKatter, katter, raser, user}){
 
     React.useEffect(()=>{
         getKatter();
@@ -95,14 +104,14 @@ function Katter({setKatter, katter, raser}){
     return(
         <div id="katt" className="content">
             {katter.map(k=> 
-                <Katt katt = {k} setKatter={setKatter} raser={raser} key={k.id}/>
+                <Katt user={user} katt = {k} setKatter={setKatter} raser={raser} key={k.id}/>
             )}
         </div>
     )
     
 };
 
-function Katt({katt, setKatter, raser}){
+function Katt({katt, setKatter, raser, user}){
     const [edit, setEdit] = React.useState(false);
 
     async function delKatt(){
@@ -148,8 +157,18 @@ function Katt({katt, setKatter, raser}){
         <div className="katter" key={katt.id}>
             <h3>{katt.name}</h3>
             <h5>{katt.race.replace(/_/g, " ")}</h5>
-            <button onClick={delKatt}>Delete</button>
-            <button onClick={showEdit}>{edit ? "Avbryt" : "Edit"}</button>
+
+            {katt.creator
+                ? <p>Skapad av: {katt.creator}</p>
+                : <p>Ingen ägare</p>
+            }
+
+            { user && (user.email === katt.creatorE || user.role === "admin") && (
+                <>
+                    <button onClick={delKatt}>Delete</button>
+                    <button onClick={showEdit}>{edit ? "Avbryt" : "Edit"}</button>
+                </>
+            )}
             {edit && (
                 <div>
                     <form onSubmit={updateKatt}>
@@ -171,7 +190,7 @@ function Katt({katt, setKatter, raser}){
 
 }
 
-function Login({loggedIn, setLoggedIN}){
+function Login({loggedIn, setLoggedIN, setUser}){
 
     async function login(event){
         event.preventDefault();
@@ -188,8 +207,12 @@ function Login({loggedIn, setLoggedIN}){
             body: JSON.stringify(konto)
         })
 
+        const cookie = await res.json()
         res.ok
-            ? setLoggedIN(true)
+            ? (
+                setLoggedIN(true),
+                setUser(cookie.user)
+            )
             : console.log("login failed") 
         
     }
@@ -198,7 +221,7 @@ function Login({loggedIn, setLoggedIN}){
         !loggedIn ?
         <div id="login" className="content">
             <form onSubmit={login} method="post">
-                <input type="text" name="email" placeholder="Email" required/>
+                <input type="email" name="email" placeholder="Email" required/>
                 <input type="password" name="password" placeholder="Password" required/>
                 <input type="submit" value="Login" />
             </form>
@@ -229,7 +252,8 @@ function Register(){
     return(
         <div id="register" className="content">
             <form onSubmit={register} method="post">
-                <input type="text" name="email" placeholder="Email" required/>
+                <input type="text" name="username" placeholder="Username" required/>
+                <input type="email" name="email" placeholder="Email" required/>
                 <input type="password" name="password" placeholder="Password" required/>
                 <input type="submit" value="Register" />
             </form>
@@ -241,6 +265,7 @@ function App(){
 
     const [katter, setKatter] = React.useState([])
     const [loggedIn, setLoggedIN] = React.useState(false)
+    const [user, setUser] = React.useState(null)
 
     const raser = [
     "abyssinian", 
@@ -304,7 +329,14 @@ function App(){
             credentials: "include"
         })
 
-        res.ok ? setLoggedIN(true) : console.log("fel")
+        const cookie = await res.json()
+
+        res.ok 
+            ? ( 
+                setLoggedIN(true),
+                setUser(cookie.user)
+            ) 
+            : console.log("det blev något fel med inloggningen")
     }
 
     async function logout(){
@@ -314,6 +346,7 @@ function App(){
         })
 
         setLoggedIN(false)
+        setUser(null)
         console.log("logged out")
     }
 
@@ -321,9 +354,10 @@ function App(){
     return(
         <div>
             <Header loggedIn={loggedIn} logout={logout}/>
-            <Katter setKatter={setKatter} katter={katter} raser={raser}/>
+            {loggedIn && <Profile />}
+            <Katter user={user} setKatter={setKatter} katter={katter} raser={raser}/>
             <Upload setKatter={setKatter} raser={raser}/>
-            <Login loggedIn={loggedIn} setLoggedIN={setLoggedIN}/>
+            <Login loggedIn={loggedIn} setLoggedIN={setLoggedIN} setUser={setUser}/>
             <Register />
         </div>
     );

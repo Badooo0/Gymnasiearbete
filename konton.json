@@ -1,0 +1,14 @@
+[
+  {
+    "username": "ben",
+    "email": "benmar0722@edu.halmstad.se",
+    "password": "$2b$12$DyYjq45ta00CO8BmNU28U.RnIIShyy1oN0HQpPHQax6OCPOGBPqD6",
+    "role": "normal_bum"
+  },
+  {
+    "username": "ding",
+    "email": "ding@gmail.com",
+    "password": "$2b$12$CChwaZE7HA0xVt49QuOm5O893pRr65VVXyTJcfSTk4MhTVndl1i26",
+    "role": "admin"
+  }
+]

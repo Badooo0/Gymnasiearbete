@@ -23,7 +23,7 @@ function dingus(req, res, next){
         return res.status(401).json({error: "inte en dingus burrr"})
         
     }
-    console.log("user tillåten " + auth.role)
+    console.log(auth.role + " tillåten")
     
     next()
 }
