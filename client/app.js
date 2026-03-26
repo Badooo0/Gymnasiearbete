@@ -1,14 +1,12 @@
-function Header({loggedIn, logout}){
+function Header({user}){
     return(
         <nav>
             <h2>Cat website</h2>
             <a href="#">Home</a>
             <a href="#katt">Katter</a>
             <a href="#upload">Upload</a>
-
-            <button></button>
             
-            {!loggedIn
+            {!user
                 ? (
                     <div>
                         <a href="#login">Login</a>
@@ -16,7 +14,12 @@ function Header({loggedIn, logout}){
                     </div>
                 ) : (   
                     <div>
-                        <a href="#logout" onClick={logout}>Logout</a>
+                        <a href="#profile">
+                            {user.profilePic 
+                                ? (<img src={user.profilePic}></img>)
+                                : (<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ0AAACUCAMAAAC+99ssAAAAMFBMVEXk5ueutLfn6eqrsbTh4+TIzM68wcPLz9HV2NqorrLc3+C1ur3Fycuyt7rZ3N24vb+gAap/AAAELUlEQVR4nO2b25arIAyGJSAHAXn/t91ox2611iIk4IX/1ay56bdCDmCSrnv06NGjR48ePXrUVACtCY4UoYQYtYrSgxDzP24igEG54I3hk4wxLDg13AMQRB8852ytCOmtEq35oNNyR/Yf0Ujd0oAAOnxjm/mY1M3wYAwnaH+AYWjEp87s9t9+fYs0M9gEtkbmA53INpuvsvdBnw438amqeO4SXMRz9fDgKlzE62vhZcDVsx6oDLhavnclWreqEblDJluUoKf7Xb2+iUtq411MdDu8nhiu4Fyj/ECLJwtMR3622fG64I2EeODL4BiThHB5eXhjPE2HJ0vhKD2v1OsmGaqUnFX9P4xHdRsABDjGLI3x8sv/VjSXASiPiUncUcB1ojjZveRJ6EYcOJqoRUjFL5FcklHyyUxHklMsDlx0PAo6LDjmCRxPGDQ8gjvoiEdHkI+RKgUNHVpCIUkpRY+xHR3+N5WH7qH7TUcQFXgxywiuAfrW2RixVhB8ELh3nUW8oxDAFX5+WilQ3O9ufTdGSymG5EE7IL0YOQFbh/Ww4DSf8JAeZVyR0HUDSsbzIw1d+XfZSZYGbmq1l8PRtcswopYoYjuUuKDs05bfBCi7PcXGo+0hi1LbEbIVvy4McX8b8tuzZEVsRVd0gScqEyvlp+Qqcwu5d2T6xvusvIrBQ4WhhS63oPlag5ZZkUHZ1d4ILjdWOKs5g3cRj/tqlpslUicXZ7hQe7hXuGTniyWi+uQnKJZmPspBhRM8kZKXuWw0sg2d9j/4jG9iuAVQhe/ny5lVbVcaQGhpDuOD87Zj7gtgp4Of1gL4ghX/8pLoyX9d8fhG5WSw3ntrg3RqFPfaUplhxKTuZgs0cKTWUN0f17TQ0zu5klNaD11DxvjDYojeZqdFHsO3ywyv9R7jpdOjELUhAQbtpGX8x4bFFL42xCCpBTjZTDvPf4FtsjJnQQ2CPPvF1NFLbnLm3I11mjTPgOin07yOttjQS6oXbXS1kGO0rQzrR/wThsHtV9qyLSg16gHHUm/LzbYC5ArtETRVeUS0Fx/rUS6lCVfMPD6OwAcarbX4wcf6wvgQMvFpk8dnCxp6IBRmLBzJyNzwgAE9GD7Fcwcs8AZQzvky1hzTHqs4eP6y99GkkW98F7sYCm+8IwlPXvguCtVO9Y3nk52vnsut+VKdr0IiOVISHtaw/WWltDME2kg2BV4ry814vw63kc8tOsWrn0r2Osl70NdNwgf6vpMEujXbWVErbqtj6Fvgtne6lw5rGubIbpEO2/PNasReR2eLtlSEoI+4hfE+cActepw1QCTtx5EQ92LKtTceXGm30mu3TIgzNImmbcVAWj7F02YQ7ja5btHmpneXMvEWX8/C36TCrrSOi9vBrcoZIC7FoOl9tHcqsW+911ih3SPxREvU3i6fTJod7x97Tzo/INpCAAAAAABJRU5ErkJggg=="></img>)
+                            }
+                        </a>
                     </div>
                 )
             }
@@ -25,11 +28,27 @@ function Header({loggedIn, logout}){
     );
 };
 
-function Profile(){
+function Profile({user, katter, logout}){
 
+    const minaKatter = katter.filter(k=> k.creatorE === user.email)
 
     return(
-        <div id="profil" className="content">hej</div>
+        <div id="profile" className="content">
+            <h2>Profil</h2>
+
+            <p>Username: {user.username}</p>
+            <p>Email: {user.email}</p>
+
+            <h3>Mina katter</h3>
+
+            
+            {minaKatter.length == 0
+                ? <p>du har inga katter</p>
+                : minaKatter.map(k=>(<div className="katter" key={k.id}>{k.name} - {k.race.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())} <img src={k.image} alt="" /></div>))
+            }
+
+            <button onClick={logout}>Log out</button>
+        </div>
     )
 }
 
@@ -38,15 +57,14 @@ function Upload({setKatter, raser}){
     async function skickaIn(event){
         event.preventDefault();
 
-        const katt = {
-            name: event.target.name.value,
-            race: event.target.race.value
-        }
+        const katt = new FormData();
+        katt.append("name", event.target.name.value)
+        katt.append("race", event.target.race.value)
+        katt.append("image", event.target.image.files[0]);
 
         const res = await fetch("/api/katter", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(katt),
+            body: katt,
             credentials: "include"
         })
         
@@ -68,7 +86,7 @@ function Upload({setKatter, raser}){
 
     return(
         <div id="upload" className="content">
-            <form onSubmit={skickaIn}>
+            <form onSubmit={skickaIn} encType="multipart/form-data">
                 <input type="text" name="name" placeholder="Name" required/>
                 <select name="race" defaultValue="" required>
                     <option value="" disabled>Välj en ras...</option>
@@ -79,6 +97,7 @@ function Upload({setKatter, raser}){
                         </option>
                     ))}
                 </select>
+                <input type="file" name="image" accept="image/*" />
                 <input type="submit" value="Submit" />
             </form>
         </div>
@@ -154,9 +173,9 @@ function Katt({katt, setKatter, raser, user}){
     }
 
     return(
-        <div className="katter" key={katt.id}>
-            <h3>{katt.name}</h3>
-            <h5>{katt.race.replace(/_/g, " ")}</h5>
+        <div className="katter">
+            <h3>{katt.name || "för någon anledning inget namn"}</h3>
+            <h5>{katt.race.replace(/_/g, " ") || "ingen jävla race"}</h5>
 
             {katt.creator
                 ? <p>Skapad av: {katt.creator}</p>
@@ -190,7 +209,7 @@ function Katt({katt, setKatter, raser, user}){
 
 }
 
-function Login({loggedIn, setLoggedIN, setUser}){
+function Login({setUser, user}){
 
     async function login(event){
         event.preventDefault();
@@ -209,16 +228,13 @@ function Login({loggedIn, setLoggedIN, setUser}){
 
         const cookie = await res.json()
         res.ok
-            ? (
-                setLoggedIN(true),
-                setUser(cookie.user)
-            )
+            ? setUser(cookie.user)
             : console.log("login failed") 
         
     }
 
     return(
-        !loggedIn ?
+        !user ?
         <div id="login" className="content">
             <form onSubmit={login} method="post">
                 <input type="email" name="email" placeholder="Email" required/>
@@ -264,7 +280,6 @@ function Register(){
 function App(){
 
     const [katter, setKatter] = React.useState([])
-    const [loggedIn, setLoggedIN] = React.useState(false)
     const [user, setUser] = React.useState(null)
 
     const raser = [
@@ -332,10 +347,7 @@ function App(){
         const cookie = await res.json()
 
         res.ok 
-            ? ( 
-                setLoggedIN(true),
-                setUser(cookie.user)
-            ) 
+            ? setUser(cookie.user) 
             : console.log("det blev något fel med inloggningen")
     }
 
@@ -345,7 +357,6 @@ function App(){
             credentials: "include"
         })
 
-        setLoggedIN(false)
         setUser(null)
         console.log("logged out")
     }
@@ -353,11 +364,11 @@ function App(){
 
     return(
         <div>
-            <Header loggedIn={loggedIn} logout={logout}/>
-            {loggedIn && <Profile />}
+            <Header user={user}/>
+            {user && <Profile katter={katter} user={user} logout={logout} />}
             <Katter user={user} setKatter={setKatter} katter={katter} raser={raser}/>
             <Upload setKatter={setKatter} raser={raser}/>
-            <Login loggedIn={loggedIn} setLoggedIN={setLoggedIN} setUser={setUser}/>
+            <Login setUser={setUser} user={user}/>
             <Register />
         </div>
     );

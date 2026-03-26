@@ -3,6 +3,11 @@ const app = express();
 const PORT = process.env.PORT || 3400;
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
+
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({storage})
+
 const {getData, saveData, guest, dingus, dingdeldi} = require("./indexFunctions")
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
@@ -51,23 +56,28 @@ app.delete("/api/katter/:id", dingus, dingdeldi,  async (req, res) => {
     res.json(filterKatter);
 })
 
-app.post("/api/katter", dingus, async (req, res) => {
+app.post("/api/katter", dingus, upload.single("image"), async (req, res) => {
     try {
 
         console.log("BODY RECEIVED:", req.body);
 
         const katter = await getData("katter.json");
-        const konton = await getData("konton.json");
-
-        const konto = konton.find(k=>req.session.user.email == k.email)
+        const user = req.session.user;
+        const body = req.body
+        const file = req.file
 
         const katt = {
             id: "id_" + Date.now(),
-            name: req.body.name,
-            race: req.body.race,
-            creator: konto.username,
-            creatorE: konto.email
+            name: body.name,
+            race: body.race,
+            creator: user.username,
+            creatorE: user.email,
+            image: file 
+                ? `data:${file.mimetype};base64,${file.buffer.toString("base64")}` 
+                : null
         };
+
+        
     
         katter.push(katt)
         await saveData("katter.json", katter)
@@ -97,8 +107,10 @@ app.post("/api/login", async (req, res) => {
         return res.status(401).json({error:"fel lösenord"})
     }
     req.session.user = {
+        username: konto.username,
         email: konto.email,
-        role: konto.role
+        role: konto.role,
+        profilePic: konto.picture || null
     }
 
     res.json({
@@ -115,7 +127,8 @@ app.post("/api/register", async (req, res) => {
         username: req.body.username,
         email: req.body.email,
         password: await bcrypt.hash(req.body.password, 12),
-        role: "normal_bum"
+        role: "normal_bum",
+        picture: null
     }
     
     const kontodup = konton.find(k=> k.email == konto.email)
@@ -149,6 +162,18 @@ app.get("/api/status", (req, res) => {
         loggedIn: true,
         user: req.session.user
     })
+})
+
+app.get("/api/profile", (req, res) => {
+
+    const user = req.session.user
+
+    if(!user || user.role === "guest"){
+        return res.status(401).json({error: "not logged in"})
+    }
+
+    res.json(user)
+
 })
 
 app.get("/test", (req, res) => {
