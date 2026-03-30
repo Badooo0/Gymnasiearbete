@@ -28,13 +28,12 @@ function Header({user}){
     );
 };
 
-function Profile({user, katter, logout}){
+function Profile({user, katter, setKatter, logout, raser}){
 
     const minaKatter = katter.filter(k=> k.creatorE === user.email)
 
     return(
         <div id="profile" className="content">
-            <h2>Profil</h2>
 
             <p>Username: {user.username}</p>
             <p>Email: {user.email}</p>
@@ -44,7 +43,7 @@ function Profile({user, katter, logout}){
             
             {minaKatter.length == 0
                 ? <p>du har inga katter</p>
-                : minaKatter.map(k=>(<div className="katter" key={k.id}>{k.name} - {k.race.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())} <img src={k.image} alt="" /></div>))
+                : minaKatter.map(k=>(<div className="katter" key={k.id}><Katt user={user} katt = {k} setKatter={setKatter} raser={raser} key={k.id} editable={true}/></div>))
             }
 
             <button onClick={logout}>Log out</button>
@@ -123,14 +122,14 @@ function Katter({setKatter, katter, raser, user}){
     return(
         <div id="katt" className="content">
             {katter.map(k=> 
-                <Katt user={user} katt = {k} setKatter={setKatter} raser={raser} key={k.id}/>
+                <Katt user={user} katt = {k} setKatter={setKatter} raser={raser} key={k.id} editable={false}/>
             )}
         </div>
     )
     
 };
 
-function Katt({katt, setKatter, raser, user}){
+function Katt({katt, setKatter, raser, user, editable}){
     const [edit, setEdit] = React.useState(false);
 
     async function delKatt(){
@@ -144,8 +143,6 @@ function Katt({katt, setKatter, raser, user}){
         ) : (
             console.log("there was a problem deleting")
         )
-            
-            
     }
     
     async function updateKatt(event){
@@ -165,7 +162,7 @@ function Katt({katt, setKatter, raser, user}){
 
         const nyaKatter = await res.json();
         setKatter(prev => prev.map(k => k.id == katt.id ? nyaKatter : k));
-        setEdit(false);
+        setEdit(false); 
     }
 
     function showEdit(){
@@ -175,14 +172,20 @@ function Katt({katt, setKatter, raser, user}){
     return(
         <div className="katter">
             <h3>{katt.name || "för någon anledning inget namn"}</h3>
-            <h5>{katt.race.replace(/_/g, " ") || "ingen jävla race"}</h5>
+            <h5>
+                {katt.race
+                    ? katt.race.replace(/_/g, " ") 
+                    : "ingen jävla race"
+                }
+            </h5>
+            <img src={katt.image} alt="" />
 
             {katt.creator
                 ? <p>Skapad av: {katt.creator}</p>
                 : <p>Ingen ägare</p>
             }
 
-            { user && (user.email === katt.creatorE || user.role === "admin") && (
+            {editable && user && (user.email === katt.creatorE || user.role === "admin") && (
                 <>
                     <button onClick={delKatt}>Delete</button>
                     <button onClick={showEdit}>{edit ? "Avbryt" : "Edit"}</button>
@@ -242,7 +245,9 @@ function Login({setUser, user}){
                 <input type="submit" value="Login" />
             </form>
         </div>
-        : <p>you are logged in</p>
+        : <div id="login" className="content">
+            
+        </div>
     )
 }
 
@@ -365,7 +370,7 @@ function App(){
     return(
         <div>
             <Header user={user}/>
-            {user && <Profile katter={katter} user={user} logout={logout} />}
+            {user && <Profile katter={katter} setKatter={setKatter} user={user} logout={logout} raser={raser}/>}
             <Katter user={user} setKatter={setKatter} katter={katter} raser={raser}/>
             <Upload setKatter={setKatter} raser={raser}/>
             <Login setUser={setUser} user={user}/>
