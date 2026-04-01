@@ -163,19 +163,3 @@ app.get("/api/status", (req, res) => {
         user: req.session.user
     })
 })
-
-app.get("/api/profile", (req, res) => {
-
-    const user = req.session.user
-
-    if(!user || user.role === "guest"){
-        return res.status(401).json({error: "not logged in"})
-    }
-
-    res.json(user)
-
-})
-
-app.get("/test", (req, res) => {
-    res.json(req.session)
-})
