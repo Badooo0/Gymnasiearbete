@@ -11,11 +11,23 @@ const session = require("express-session");
 const bcrypt = require("bcryptjs");
 
 const multer = require("multer");
-const storage = multer.memoryStorage();
-const upload = multer({storage})
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/")
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + file.originalname
+    cb(null, uniqueSuffix)
+  }
+})
+const upload = multer({ storage: storage })
 
+const {getData, saveData, guest, dingus, dingdeldi} = require("./indexFunctions")
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
 ```
-Här skriver du din förklaring till koden ovanför
+Här sätts en port som localhosten ska lyssna på. Express startas och session, bcrypt och multer definieras. Jag gjorde valet att använda multer för att hantera file upload effektivt
 
 ***
 

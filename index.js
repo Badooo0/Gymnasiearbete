@@ -5,8 +5,16 @@ const session = require("express-session");
 const bcrypt = require("bcryptjs");
 
 const multer = require("multer");
-const storage = multer.memoryStorage();
-const upload = multer({storage})
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/")
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + file.originalname
+    cb(null, uniqueSuffix)
+  }
+})
+const upload = multer({ storage: storage })
 
 const {getData, saveData, guest, dingus, dingdeldi} = require("./indexFunctions")
 app.listen(PORT, () => {
@@ -23,6 +31,7 @@ app.use(session({
 app.use(guest)
 
 app.use(express.static("client"));
+app.use(express.static("uploads"));
 app.use(express.json());
 
 app.get("/", (req, res) =>{
@@ -59,12 +68,18 @@ app.delete("/api/katter/:id", dingus, dingdeldi,  async (req, res) => {
 app.post("/api/katter", dingus, upload.single("image"), async (req, res) => {
     try {
 
-        console.log("BODY RECEIVED:", req.body);
+        console.log("BODY RECEIVED:", req.body, req.file);
 
         const katter = await getData("katter.json");
         const user = req.session.user;
         const body = req.body
         const file = req.file
+
+        const allowedExt = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/jfif"]
+
+        !allowedExt.includes(file.mimetype) 
+            ? res.json({error: "bild är inte tillåten"})
+            : console.log("bild format är tillåten")
 
         const katt = {
             id: "id_" + Date.now(),
@@ -72,9 +87,7 @@ app.post("/api/katter", dingus, upload.single("image"), async (req, res) => {
             race: body.race,
             creator: user.username,
             creatorE: user.email,
-            image: file 
-                ? `data:${file.mimetype};base64,${file.buffer.toString("base64")}` 
-                : null
+            image: file ? file.filename : null
         };
 
         
@@ -153,7 +166,7 @@ app.post("/api/logout", (req, res) => {
 
 app.get("/api/status", (req, res) => {
     if(!req.session.user || req.session.user.role == "guest") {
-        console.log(req.session.user.role)
+        console.log(req.session.user.role || null)
         return res.status(401).json({loggedIn: false})
     }
         

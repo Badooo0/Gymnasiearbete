@@ -56,31 +56,24 @@ function Upload({setKatter, raser}){
     async function skickaIn(event){
         event.preventDefault();
 
-        const katt = new FormData();
-        katt.append("name", event.target.name.value)
-        katt.append("race", event.target.race.value)
-        katt.append("image", event.target.image.files[0]);
-
+        const katt = new FormData(event.target);
+        
         const res = await fetch("/api/katter", {
             method: "POST",
             body: katt,
             credentials: "include"
         })
-        
+
         const nyKatt = await res.json()
 
         if(!res.ok) {
             console.log(nyKatt);
             return;
         } 
-        console.log(katt)
 
         setKatter(prev=>[...prev, nyKatt])
         event.target.reset();
     }
-
-
-
 
 
     return(
@@ -171,14 +164,10 @@ function Katt({katt, setKatter, raser, user, editable}){
 
     return(
         <div className="katter">
-            <h3>{katt.name || "för någon anledning inget namn"}</h3>
-            <h5>
-                {katt.race
-                    ? katt.race.replace(/_/g, " ") 
-                    : "ingen jävla race"
-                }
-            </h5>
-            <img src={katt.image} alt="" />
+            <h3>{katt.name || ""}</h3>
+            <h5>{katt.race ? katt.race.replace(/_/g, " ") : "ingen ras"}</h5>
+            
+            <img src={katt.image} alt="placeholder" loading="lazy" />
 
             {katt.creator
                 ? <p>Skapad av: {katt.creator}</p>

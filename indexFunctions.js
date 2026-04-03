@@ -19,7 +19,7 @@ function dingus(req, res, next){
     const auth = req.session.user
 
     if(!auth || auth.role == "guest"){
-        console.log("user inte tillåten")
+        console.log(auth.role+" inte tillåten")
         return res.status(401).json({error: "inte en dingus burrr"})
         
     }
