@@ -27,7 +27,7 @@ app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
 ```
-Här sätts en port som localhosten ska lyssna på. Express startas och session, bcrypt och multer definieras. Jag gjorde valet att använda multer för att hantera file upload effektivt
+Här sätts en port som localhosten ska lyssna på. Express startas och session, bcrypt och multer definieras. Jag gjorde valet att använda multer för att hantera file upload effektivt och jag gillar hur dynamisk multer kan vara. storage är en konstant för att först visa att vart filen ska sparas och sen vad filen ska heta. upload används för att multer ska senare kunna användas för att ta emot filen. Jag har en annan js fil för funktioner som jag hämtar i ett objekt. 
 
 ***
 
@@ -110,8 +110,6 @@ async function getData(fileDir){
 async function saveData(fileDir, data){
     await fs.writeFile(fileDir, JSON.stringify(data, null, 2));
 }
-
-
 ```
 
 Getdata är till för att man ska snabbare hämta data från en json fil och savedata skriver data till en json fil.
@@ -209,7 +207,6 @@ app.post("/api/login", async (req, res) => {
     }
 
     res.json({
-        loggedIn: true,
         user: req.session.user
     })
 })
@@ -243,18 +240,16 @@ app.post("/api/register", async (req, res) => {
 app.post("/api/logout", (req, res) => {
     req.session.destroy()
 
-    res.json({loggedIn: false})
+    res.json({user: null})
 })
 
 app.get("/api/status", (req, res) => {
     if(!req.session.user || req.session.user.role == "guest") {
         console.log(req.session.user.role)
-        return res.status(401).json({loggedIn: false})
+        return res.status(401).json({user: null})
     }
         
-    console.log(req.session.user)
     res.json({
-        loggedIn: true,
         user: req.session.user
     })
 })
@@ -267,7 +262,431 @@ Patch api routen /katter/:id används när en användare ska ändra i katter dat
 
 Delete api routen /katter/:id filtrerar bort den katten som klienten skickar till servern och där filtrerar servern bort katten som den sparar till databasen och skickar tillbaka katten som togs bort till klienten så den ska kunna ändra så katten inte syns.
 
+I api post routen /katter hämtas alla katter, användarens session, bodyn från form och filen som skickas. Upload.single("image") används för att ta emot en fil som har namnet "image" från fil input från klienten. Jag skapar även en lista av vilka mimetype som är tillåtna. Om en fil har en mimetype som inte är tillåten kommer servern skicka tillbaka ett fel meddelande. Därefter skapas ett objekt "katt" som har med allt som behövs innan den sparas i katter.json. Den nya katten läggs till i katter listan och sparas sedan i json filen. 
 
+Post routen /login tar den emot bodyn som skickas av klienten. Den läser av konton filen för att hitta kontot som användaren försöker nå. Lösenordet behöver bli compared för att lösenordet är hashat. Om login fungerar så läggs det till en roller, username, email och en profil bild som inte än är helt klar. Servern skickar sen till klienten hela session så att klienten också ser att användaren är inloggad. 
+
+I /register routen skapas ett objekt till det nya kontot som registreras. Objektet lägger till bodyn som klienten skickar och en roll för de normala användare. Picture är en placeholder för en profilbild som användaren ska senare kunna ändra. Om det här kontot redan finns så avbryts processen men annars sparas det nya kontot och skickas till klienten.
+
+I /logout förstörs session och skickar till klienten att usern inte längre är inloggad. 
+
+/status routen används för kolla om användaren är logged in. Servern skickar då antingen user session eller att user är null. 
+***
+
+
+### App klient
+```jsx
+function App(){
+
+    const [katter, setKatter] = React.useState([])
+    const [user, setUser] = React.useState(null)
+
+    const raser = [
+    "abyssinian", 
+    "american_bobtail", 
+    "american_curl", 
+    "american_shorthair", 
+    "american_wirehair",
+    "Balinese",
+    "Bengal_Cats",
+    "Birman",
+    "Bombay",
+    "British_Shorthair",
+    "Burmese",
+    "Burmilla",
+    "Chartreux",
+    "Chinese_Li_Hua",
+    "Colorpoint_Shorthair",
+    "Cornish_Rex",
+    "Cymric",
+    "Devon_Rex",
+    "Egyptian_Mau",
+    "European_Burmese",
+    "Exotic",
+    "Havana_Brown",
+    "Himalayan",
+    "Japanese_Bobtail",
+    "Javanese",
+    "Korat",
+    "LaPerm",
+    "Maine_Coon",
+    "Manx",
+    "Nebelung",
+    "Norwegian_Forest",
+    "Ocicat",
+    "Oriental",
+    "Persian",
+    "Pixie-Bob",
+    "Ragamuffin",
+    "Ragdoll_Cats",
+    "Russian_Blue",
+    "Savannah",
+    "Scottish_Fold",
+    "Selkirk_Rex",
+    "Siamese_Cat",
+    "Siberian",
+    "Singapura",
+    "Snowshoe",
+    "Somali",
+    "Sphynx",
+    "Tonkinese",
+    "Turkish_Angora",
+    "Turkish_Van"
+    ]
+
+    React.useEffect(() => {
+        checkLogin();
+    }, [user]);
+
+    async function checkLogin(){
+        const res = await fetch("/api/status", {
+            credentials: "include"
+        })
+
+        const cookie = await res.json()
+
+        res.ok 
+            ? setUser(cookie.user) 
+            : console.log("det blev något fel med inloggningen")
+    }
+
+    async function logout(){
+        await fetch("/api/logout", {
+            method: "POST",
+            credentials: "include"
+        })
+
+        setUser(null)
+        console.log("logged out")
+    }
+
+
+    return(
+        <div>
+            <Header user={user}/>
+            {user && <Profile katter={katter} setKatter={setKatter} user={user} logout={logout} raser={raser}/>}
+            <Katter user={user} setKatter={setKatter} katter={katter} raser={raser}/>
+            <Upload setKatter={setKatter} raser={raser}/>
+            <Login setUser={setUser} user={user}/>
+            <Register />
+        </div>
+    );
+};
+
+ReactDOM.createRoot(document.querySelector("#root")).render(<App />);
+```
+React kopplas på #root diven i index och renderar app funktionen. I app skapas usestate för user och katter som användas för att ändra deras tillstånd. I app returnas alla andra funktioner som skapas i react. Med varje funktion utom register så skickas det också med variabler som skapas i app men kan senare bli ändrade eller använda av funktionerna som tar emot variablerna. checklogin kollar session varje gång något ändras med user. Logout skickar till servern /logout och då förstörs cookien. Dessutom sätts user till inget på klient sidan så både klienten och servern är utloggade.
 
 ***
 
+
+### html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gymnasiearbete</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" src="app.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>
+```
+Html kopplar några react bibliotek som babel för att reacten ska vara kompatibel. Vi kopplar även app.js där jag har all react kod. Diven med id root är den vi renderar på i react och som man lyssnar på från klienten. 
+
+***
+
+### Login och register klient
+```jsx
+function Login({setUser, user}){
+
+    async function login(event){
+        event.preventDefault();
+
+        const konto = {
+            email: event.target.email.value,
+            password: event.target.password.value
+        }
+
+        const res = await fetch("/api/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            credentials: "include", //skickas cookies
+            body: JSON.stringify(konto)
+        })
+
+        const cookie = await res.json()
+        res.ok
+            ? setUser(cookie.user)
+            : console.log("login failed") 
+        
+    }
+
+    return(
+        !user ?
+        <div id="login" className="content">
+            <form onSubmit={login} method="post">
+                <input type="email" name="email" placeholder="Email" required/>
+                <input type="password" name="password" placeholder="Password" required/>
+                <input type="submit" value="Login" />
+            </form>
+        </div>
+        : <div id="login" className="content">
+            
+        </div>
+    )
+}
+
+
+function Register(){
+    async function register(event){
+        event.preventDefault(); 
+
+        const konto = {
+            email: event.target.email.value,
+            password: event.target.password.value
+        }
+
+        const res = await fetch("/api/register", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(konto), 
+            credentials: "include"
+        })
+
+    }
+
+    return(
+        <div id="register" className="content">
+            <form onSubmit={register} method="post">
+                <input type="text" name="username" placeholder="Username" required/>
+                <input type="email" name="email" placeholder="Email" required/>
+                <input type="password" name="password" placeholder="Password" required/>
+                <input type="submit" value="Register" />
+            </form>
+        </div>
+    )
+}
+```
+
+
+
+***
+### Header och profil klient
+```jsx
+function Header({user}){
+    return(
+        <nav>
+            <h2>Cat website</h2>
+            <a href="#">Home</a>
+            <a href="#katt">Katter</a>
+            <a href="#upload">Upload</a>
+            
+            {!user
+                ? (
+                    <div>
+                        <a href="#login">Login</a>
+                        <a href="#register">Register</a>
+                    </div>
+                ) : (   
+                    <div>
+                        <a href="#profile">
+                            {user.profilePic 
+                                ? (<img src={user.profilePic}></img>)
+                                : (<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ0AAACUCAMAAAC+99ssAAAAMFBMVEXk5ueutLfn6eqrsbTh4+TIzM68wcPLz9HV2NqorrLc3+C1ur3Fycuyt7rZ3N24vb+gAap/AAAELUlEQVR4nO2b25arIAyGJSAHAXn/t91ox2611iIk4IX/1ay56bdCDmCSrnv06NGjR48ePXrUVACtCY4UoYQYtYrSgxDzP24igEG54I3hk4wxLDg13AMQRB8852ytCOmtEq35oNNyR/Yf0Ujd0oAAOnxjm/mY1M3wYAwnaH+AYWjEp87s9t9+fYs0M9gEtkbmA53INpuvsvdBnw438amqeO4SXMRz9fDgKlzE62vhZcDVsx6oDLhavnclWreqEblDJluUoKf7Xb2+iUtq411MdDu8nhiu4Fyj/ECLJwtMR3622fG64I2EeODL4BiThHB5eXhjPE2HJ0vhKD2v1OsmGaqUnFX9P4xHdRsABDjGLI3x8sv/VjSXASiPiUncUcB1ojjZveRJ6EYcOJqoRUjFL5FcklHyyUxHklMsDlx0PAo6LDjmCRxPGDQ8gjvoiEdHkI+RKgUNHVpCIUkpRY+xHR3+N5WH7qH7TUcQFXgxywiuAfrW2RixVhB8ELh3nUW8oxDAFX5+WilQ3O9ufTdGSymG5EE7IL0YOQFbh/Ww4DSf8JAeZVyR0HUDSsbzIw1d+XfZSZYGbmq1l8PRtcswopYoYjuUuKDs05bfBCi7PcXGo+0hi1LbEbIVvy4McX8b8tuzZEVsRVd0gScqEyvlp+Qqcwu5d2T6xvusvIrBQ4WhhS63oPlag5ZZkUHZ1d4ILjdWOKs5g3cRj/tqlpslUicXZ7hQe7hXuGTniyWi+uQnKJZmPspBhRM8kZKXuWw0sg2d9j/4jG9iuAVQhe/ny5lVbVcaQGhpDuOD87Zj7gtgp4Of1gL4ghX/8pLoyX9d8fhG5WSw3ntrg3RqFPfaUplhxKTuZgs0cKTWUN0f17TQ0zu5klNaD11DxvjDYojeZqdFHsO3ywyv9R7jpdOjELUhAQbtpGX8x4bFFL42xCCpBTjZTDvPf4FtsjJnQQ2CPPvF1NFLbnLm3I11mjTPgOin07yOttjQS6oXbXS1kGO0rQzrR/wThsHtV9qyLSg16gHHUm/LzbYC5ArtETRVeUS0Fx/rUS6lCVfMPD6OwAcarbX4wcf6wvgQMvFpk8dnCxp6IBRmLBzJyNzwgAE9GD7Fcwcs8AZQzvky1hzTHqs4eP6y99GkkW98F7sYCm+8IwlPXvguCtVO9Y3nk52vnsut+VKdr0IiOVISHtaw/WWltDME2kg2BV4ry814vw63kc8tOsWrn0r2Osl70NdNwgf6vpMEujXbWVErbqtj6Fvgtne6lw5rGubIbpEO2/PNasReR2eLtlSEoI+4hfE+cActepw1QCTtx5EQ92LKtTceXGm30mu3TIgzNImmbcVAWj7F02YQ7ja5btHmpneXMvEWX8/C36TCrrSOi9vBrcoZIC7FoOl9tHcqsW+911ih3SPxREvU3i6fTJod7x97Tzo/INpCAAAAAABJRU5ErkJggg=="></img>)
+                            }
+                        </a>
+                    </div>
+                )
+            }
+        </nav>
+    );
+};
+
+function Profile({user, katter, setKatter, logout, raser}){
+
+    const minaKatter = katter.filter(k=> k.creatorE === user.email)
+
+    return(
+        <div id="profile" className="content">
+
+            <p>Username: {user.username}</p>
+            <p>Email: {user.email}</p>
+
+            <h3>Mina katter</h3>
+
+            
+            {minaKatter.length == 0
+                ? <p>du har inga katter</p>
+                : minaKatter.map(k=>(<div className="katter" key={k.id}><Katt user={user} katt = {k} setKatter={setKatter} raser={raser} key={k.id} editable={true}/></div>))
+            }
+
+            <button onClick={logout}>Log out</button>
+        </div>
+    )
+}
+```
+
+
+
+
+***
+### katter klient
+```jsx
+function Upload({setKatter, raser}){
+
+    async function skickaIn(event){
+        event.preventDefault();
+
+        const katt = new FormData(event.target);
+        
+        const res = await fetch("/api/katter", {
+            method: "POST",
+            body: katt,
+            credentials: "include"
+        })
+
+        const nyKatt = await res.json()
+
+        if(!res.ok) {
+            console.log(nyKatt);
+            return;
+        } 
+
+        setKatter(prev=>[...prev, nyKatt])
+        event.target.reset();
+    }
+
+
+    return(
+        <div id="upload" className="content">
+            <form onSubmit={skickaIn} encType="multipart/form-data">
+                <input type="text" name="name" placeholder="Name" required/>
+                <select name="race" defaultValue="" required>
+                    <option value="" disabled>Välj en ras...</option>
+                    {raser.map(r=> (
+                        <option key={r} value={r}>
+                            {r.replace(/_/g, " ").replace(/\b\w/g, bokstav => bokstav.toUpperCase())}  
+                            {/* \b = ordgräns, \w = första tecknet i ordet */}
+                        </option>
+                    ))}
+                </select>
+                <input type="file" name="image" accept="image/*" />
+                <input type="submit" value="Submit" />
+            </form>
+        </div>
+    )
+}
+function Katter({setKatter, katter, raser, user}){
+
+    React.useEffect(()=>{
+        getKatter();
+    }, [])
+
+    async function getKatter(){
+        const res = await fetch("/api/katter", {
+            credentials: "include"
+        })
+        const katter = await res.json()
+        setKatter(katter)
+        console.log(katter);
+    }
+
+    return(
+        <div id="katt" className="content">
+            {katter.map(k=> 
+                <Katt user={user} katt = {k} setKatter={setKatter} raser={raser} key={k.id} editable={false}/>
+            )}
+        </div>
+    )
+    
+};
+
+function Katt({katt, setKatter, raser, user, editable}){
+    const [edit, setEdit] = React.useState(false);
+
+    async function delKatt(){
+        const res = await fetch("/api/katter/" + katt.id, {
+            method:"DELETE",
+            credentials: "include"
+        });
+
+        res.ok ? (
+            setKatter(prev=> prev.filter(k=> katt.id != k.id))
+        ) : (
+            console.log("there was a problem deleting")
+        )
+    }
+    
+    async function updateKatt(event){
+        event.preventDefault();
+
+        const updatedKatt = {
+            name: event.target.name.value,
+            race: event.target.race.value
+        }
+
+        const res = await fetch("/api/katter/" + katt.id, {
+            method: "PATCH",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(updatedKatt),
+            credentials: "include"
+        })
+
+        const nyaKatter = await res.json();
+        setKatter(prev => prev.map(k => k.id == katt.id ? nyaKatter : k));
+        setEdit(false); 
+    }
+
+    function showEdit(){
+        setEdit(e=> !e)
+    }
+
+    return(
+        <div className="katter">
+            <h3>{katt.name || ""}</h3>
+            <h5>{katt.race ? katt.race.replace(/_/g, " ") : "ingen ras"}</h5>
+            
+            <img src={katt.image} alt="placeholder" loading="lazy" />
+
+            {katt.creator
+                ? <p>Skapad av: {katt.creator}</p>
+                : <p>Ingen ägare</p>
+            }
+
+            {editable && user && (user.email === katt.creatorE || user.role === "admin") && (
+                <>
+                    <button onClick={delKatt}>Delete</button>
+                    <button onClick={showEdit}>{edit ? "Avbryt" : "Edit"}</button>
+                </>
+            )}
+            {edit && (
+                <div>
+                    <form onSubmit={updateKatt}>
+                        <input type="text" name="name" placeholder="Name" defaultValue={katt.name} required/>
+                        <select name="race" defaultValue={katt.race} required>
+                            <option value="" disabled>Välj en ras...</option>
+                            {raser.map(r=> (
+                                <option key={r} value={r}>
+                                    {r.replace(/_/g, " ").replace(/\b\w/g, bokstav => bokstav.toUpperCase())}  
+                                </option>
+                            ))}
+                        </select>
+                        <input type="submit" value="Submit" />
+                    </form>
+                </div>
+            )}    
+        </div>
+    );
+}
+```
+
+
+***

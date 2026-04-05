@@ -94,7 +94,6 @@ function Upload({setKatter, raser}){
             </form>
         </div>
     )
-
 }
 
 function Katter({setKatter, katter, raser, user}){
@@ -166,7 +165,7 @@ function Katt({katt, setKatter, raser, user, editable}){
         <div className="katter">
             <h3>{katt.name || ""}</h3>
             <h5>{katt.race ? katt.race.replace(/_/g, " ") : "ingen ras"}</h5>
-            
+
             <img src={katt.image} alt="placeholder" loading="lazy" />
 
             {katt.creator
@@ -331,7 +330,7 @@ function App(){
 
     React.useEffect(() => {
         checkLogin();
-    }, []);
+    }, [user]);
 
     async function checkLogin(){
         const res = await fetch("/api/status", {

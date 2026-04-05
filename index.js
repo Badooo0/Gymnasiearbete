@@ -127,7 +127,6 @@ app.post("/api/login", async (req, res) => {
     }
 
     res.json({
-        loggedIn: true,
         user: req.session.user
     })
 })
@@ -161,18 +160,16 @@ app.post("/api/register", async (req, res) => {
 app.post("/api/logout", (req, res) => {
     req.session.destroy()
 
-    res.json({loggedIn: false})
+    res.json({user: null})
 })
 
 app.get("/api/status", (req, res) => {
     if(!req.session.user || req.session.user.role == "guest") {
         console.log(req.session.user.role || null)
-        return res.status(401).json({loggedIn: false})
+        return res.status(401).json({user: null})
     }
         
-    console.log(req.session.user)
     res.json({
-        loggedIn: true,
         user: req.session.user
     })
 })
