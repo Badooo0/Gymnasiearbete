@@ -245,6 +245,7 @@ function Register(){
         event.preventDefault(); 
 
         const konto = {
+            username: event.target.username.value,
             email: event.target.email.value,
             password: event.target.password.value
         }

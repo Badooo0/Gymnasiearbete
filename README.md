@@ -450,6 +450,7 @@ function Register(){
         event.preventDefault(); 
 
         const konto = {
+            username: event.target.username.value,
             email: event.target.email.value,
             password: event.target.password.value
         }
@@ -476,7 +477,9 @@ function Register(){
 }
 ```
 
+Ett objekt skapas med de värdena som satts in i formen på login för email och password av kontot. det här objektet skickas sedan vidare till servern för att bli hanterad och sedan skicka tillbaka session om login gick bra. Det som visas i formen är om man inte är inloggad så det visar en ruta för email och password och submit. Jag är inte helt klar för de ska vara en annan grej som visas om man är logged in. 
 
+I register skapas också ett objekt med samma uppdrag fast att då skapa en ny konto på servern. event.preventdefault() är för att vi ska stanna kvar på samma plats i webbsidan och inte följa dit formen vill skicka användaren. I register begärs en extra username för att visa vem som skapat en katt senare i upload. 
 
 ***
 ### Header och profil klient
@@ -534,11 +537,13 @@ function Profile({user, katter, setKatter, logout, raser}){
 }
 ```
 
+I header vill klienten visa alla länkar som kan klickas på och den hjälp av user som definieras i app. med hjälp av user kan vi sätta upp en conditional render för att bara visa login och register länkarna när user inte är definierad. Alltså när användaren inte är inloggad visas login register annars om användaren är inloggad så visas en länk till profilen med en bild på profilbilden. Profilbilder är inte helt klara så det finns inget sätt att ändra dom just nu. 
 
+I profilen skickas många saker med som user, katter, setKatter, logout, raser. Detta är för att i profilen ska användaren visas och de katter som användaren skapat. När minakatter renderas läggs det då till editable = true i katt som gör att vi kan ändra på kattens innehåll. Dessutom kan vi logga ut från kontot inne på profilen. 
 
 
 ***
-### katter klient
+### katter och upload klient
 ```jsx
 function Upload({setKatter, raser}){
 
@@ -688,5 +693,10 @@ function Katt({katt, setKatter, raser, user, editable}){
 }
 ```
 
+I upload händer det lite mer grejer än i register och login. Här skickar vi med multipart/form-data så att filer kan skickas med till servern. Då för att skapa ett objekt som vi kan skicka till servern används FormData(event.target) och då stoppas alla värden som skickas i formen in i formdata. Vi väntar på att servern skickar tillbaka en fullständig katt med id och allt annat som vi senare kan lägga till i katter med setkatter. Vi lägger då den nya katten i slutet av listan. 
+
+I katter används getkatter när sidan laddas för att kolla de katter som finns. i katter renderar vi en div med katterna men de är mappade och skickas senare vidare in i nästa funktion katt.
+
+Här börjar vi med att säga att edit är false för vi ska inte börja med att visa edit. Katt visar hela kattens card med andra ord de gräjerna vi vill visa om en katt på webbsidan. Den kollar också om delete och edit ska visas för de kan bara hända om editable, user, och user email och kattens skapare matchar. I katter funktionen är editable false så då kommer inte dessa visas. När edit blir true kommer en form visas för de grejer man kan vilja ändra på katten. I katt finns även funktionerna för att uppdatera katten och ta bort katten.
 
 ***
